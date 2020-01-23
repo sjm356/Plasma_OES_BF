@@ -40,29 +40,27 @@ new_file_path = file_path + '/new_output'
 if not os.path.exists(new_file_path):
     os.mkdir(new_file_path)
 # Making files for density values depending on the experiment condition
-new_file_name_density = file_path[67:] + '_density'
+new_file_name_density = file_path[69:] + '_density'
 new_file_density = open(new_file_path + "/" + new_file_name_density + ".dat",'w')
 new_file_density.write(f'Pressure(mT) \t Power(W) \t Material \t 1s2 \t 1s4 \t 1s3 \t 1s5 \t LR_811/750 \n')
 
-OES_data = "C:/Users/jmsong/Documents/00_NFRI/00_연구관리/00_실험데이터/01_OES/200113_HR4000_WL.txt"
-OES_peak = np.loadtxt(OES_data, dtype={'names':('WL', 'lstat','ustat','peak'),'formats':('f4','S3','S4','f4')})
-OES_peak_pd = pd.DataFrame(OES_peak)
+ref_OES_data = "/Users/jaemin/Documents/00_Projects/Plasma_OES_BF/test data/200113_HR4000_WL.txt"
+ref_OES_peak = np.loadtxt(ref_OES_data, dtype={'names':('WL', 'lstat','ustat','peak'),'formats':('f4','S3','S4','f4')})
+ref_OES_peak_pd = pd.DataFrame(ref_OES_peak)
 
 # Loading Calibration coefficient file
-calibration_coeff_file = "C:/Users/jmsong/Documents/00_NFRI/00_연구관리/00_실험데이터/01_OES/200113_HR4000_cal.txt"
-with open(calibration_coeff_file) as data_cal:
-    lines_cal = data_cal.readlines()
-    cal_lines_array = np.array(lines_cal[0:])
+calibration_coeff_file = "/Users/jaemin/Documents/00_Projects/Plasma_OES_BF/test data/200113_HR4000_cal.txt"
+cal_coeff = np.loadtxt(calibration_coeff_file, dtype={'names':('WL','coeff'),'formats':('f4','f4')})
+cal_coeff_pd = pd.DataFrame(cal_coeff)
 
 # Loading OES files and finding peak intensity
 for t,k in enumerate(file_list):
     if k == 'new_output':
         continue
-    with open(file_path + "/"+ k) as data:
-        lines = data.readlines()
-        lines_array = np.array(lines[14:-1])     # reading each line with string type with list format
-        new_lines_array = np.zeros((len(lines_array),4),dtype = float)      # making new array with [n,2] matrix form for saving with floating type
-        data.close()
+    file_path_re = file_path + "/" + k
+    file_path_out = file_path_re + "_cal.txt"
+    OES_data_pd = pd.read_csv(file_path_re,sep='\t', names = ['WL','I'], dtype = {"WL":float, "I":float}, skiprows = 14)
+    
     pressure = k[9:11]
     power = k[14:17]
     material = k[19:24]
@@ -76,18 +74,10 @@ for t,k in enumerate(file_list):
     ph_file_name = "ph_intensity_" + k
     intensity_file = open(file_path + "/new_output/" + ph_file_name,'w')
     intensity_file.write(f'Wavelength(nm) \t Intensity \n')
-                
-    for l, new_line in enumerate(lines_array):
-        nnew_line = new_line.split('\t')  # Splitting with tap
-        new_lines_array[l,0] = nnew_line[0]     # Wavelength
-        new_lines_array[l,1] = nnew_line[1]     # raw intensity
-        new_lines_array[l,2] = new_lines_array[l,1] * float(cal_lines_array[l].split('\t')[1])     # Multiplying calibration coefficient
-
-        # For writing files
-        temp_1 = new_lines_array[l,0]
-        temp_2 = new_lines_array[l,1]
-        temp_3 = new_lines_array[l,2]
-        new_file_data.write(f'{temp_1} \t {temp_2} \t {temp_3} \n')
+    
+    OES_data_pd['cal_I'] = OES_data_pd.I * cal_coeff_pd.coeff
+    OES_data_pd.to_csv(file_path_out, sep= '\t')
+    
     new_file_data.close()
     
 ####### Finding intensity #########
@@ -184,6 +174,7 @@ for t,k in enumerate(file_list):
     num_case_2p8 = comb(len(ed_2p8),2)
     num_case_2p9 = comb(len(ed_2p9),2)
     num_case_2p10 = comb(len(ed_2p10),2)
+    
     num_total_case = (num_case_2p1 + num_case_2p2 + num_case_2p3 + num_case_2p4
                        + num_case_2p5 + num_case_2p6 + num_case_2p7 + num_case_2p8
                        + num_case_2p9 + num_case_2p10)
@@ -221,8 +212,6 @@ for t,k in enumerate(file_list):
                     for ed_1u in ed_array:
                         if len(ed_1u) is not 1:
                             for ed_1u_1l in ed_1u:
-                                
-                
     
     n1s2 = Chi2[np.argmin(Chi2[:,1]), 0]
     n1s4 = Chi2[np.argmin(Chi2[:,2]), 0]
