@@ -58,7 +58,7 @@ for t,k in enumerate(file_list):
     if k == 'new_output':
         continue
     file_path_re = file_path + "/" + k
-    file_path_out = file_path_re + "_cal.txt"
+    file_path_out = file_path + "/new_output/" + "/" + k + "_cal.txt"
     OES_data = np.loadtxt(file_path_re, dtype={'names':('WL','I'),'formats':('f4','f4')}, skiprows = 14)
     OES_data_pd = pd.DataFrame(OES_data)
     #OES_data_pd = pd.read_csv(file_path_re,sep='\t', names = ['WL','I'], dtype = {"WL":"float", "I":"float"}, skiprows = 14, index_col = 0)
@@ -67,11 +67,6 @@ for t,k in enumerate(file_list):
     power = k[14:17]
     material = k[19:24]
     
-    # Making new data file
-    update_file = k + "_cal"
-    new_file_data = open(new_file_path + "/" + update_file + ".dat",'w')
-    new_file_data.write(f'Wavelength(nm) \t Original intensity \t Calibrated intensity \n')
-
     # Making and opening new output file (ph=peak height)
     ph_file_name = "ph_intensity_" + k
     intensity_file = open(file_path + "/new_output/" + ph_file_name,'w')
@@ -79,18 +74,16 @@ for t,k in enumerate(file_list):
     
     OES_data_pd['cal_I'] = OES_data_pd.I * cal_coeff_pd.coeff
     OES_data_pd.to_csv(file_path_out, sep= '\t')
-    
-    new_file_data.close()
-    
-    if OES_data_pd.WL == ref_OES_data_pd.WL:
-        print(OES_data_pd)
-    
 ####### Finding intensity #########
 # Changing OES_peak value
 # option: line ratio, 750/811
+    np.same
     I750 = 0
     I811 = 0
     IR811_750 = 0
+    for i in OES_data_pd.WL:
+        if i in ref_OES_peak_pd.WL:
+            ref_OES_peak_pd['exp_I'] = 
     for i,WL in enumerate(OES_peak_pd.WL):
         OES_peak_pd.peak[i] = new_lines_array[(np.where(new_lines_array[:,0] == WL)), 2]
         intensity_file.write(f'{WL} \t {ii[3]} \n')
