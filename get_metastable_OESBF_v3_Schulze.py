@@ -59,7 +59,9 @@ for t,k in enumerate(file_list):
         continue
     file_path_re = file_path + "/" + k
     file_path_out = file_path_re + "_cal.txt"
-    OES_data_pd = pd.read_csv(file_path_re,sep='\t', names = ['WL','I'], dtype = {"WL":float, "I":float}, skiprows = 14)
+    OES_data = np.loadtxt(file_path_re, dtype={'names':('WL','I'),'formats':('f4','f4')}, skiprows = 14)
+    OES_data_pd = pd.DataFrame(OES_data)
+    #OES_data_pd = pd.read_csv(file_path_re,sep='\t', names = ['WL','I'], dtype = {"WL":"float", "I":"float"}, skiprows = 14, index_col = 0)
     
     pressure = k[9:11]
     power = k[14:17]
@@ -80,8 +82,11 @@ for t,k in enumerate(file_list):
     
     new_file_data.close()
     
+    if OES_data_pd.WL == ref_OES_data_pd.WL:
+        print(OES_data_pd)
+    
 ####### Finding intensity #########
-# Changing OES_peak value 
+# Changing OES_peak value
 # option: line ratio, 750/811
     I750 = 0
     I811 = 0
